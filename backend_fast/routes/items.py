@@ -74,4 +74,22 @@ def update_item_endpoint(item_id: int, item: ItemUpdate, db: Session = Depends(g
     
         return updated_item
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))    
+        raise HTTPException(status_code=400, detail=str(e)) 
+
+@router.delete("/delete/{item_id}", response_model=ItemRead)
+def delete_item_endpoint(item_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """
+    Delete an item by ID.
+    """
+    # Check if the user is an admin
+    if not check_user_admin(current_user):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    try:
+        deleted_item = delete_item(db=db, item_id=item_id)
+        if not deleted_item:
+            raise HTTPException(status_code=404, detail="Item not found")
+    
+        return deleted_item
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))   
